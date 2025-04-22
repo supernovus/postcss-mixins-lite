@@ -16,6 +16,9 @@
     "test": "pnpm run /^test:/"
   },
   "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "contributors": [
+    "Tim Totten <2010@totten.ca>"
+  ],
   "license": "MIT",
   "repository": "supernovus/postcss-mixins-lite",
   "engines": {
