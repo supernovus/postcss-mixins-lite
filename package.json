@@ -1,7 +1,7 @@
 {
-  "name": "postcss-mixins",
-  "version": "11.0.3",
-  "description": "PostCSS plugin for mixins",
+  "name": "postcss-mixins-lite",
+  "version": "12.0.0",
+  "description": "PostCSS plugin for mixins (no fs usage)",
   "keywords": [
     "postcss",
     "css",
@@ -36,9 +36,7 @@
   },
   "dependencies": {
     "postcss-js": "^4.0.1",
-    "postcss-simple-vars": "^7.0.1",
-    "sugarss": "^4.0.1",
-    "tinyglobby": "^0.2.7"
+    "postcss-simple-vars": "^7.0.1"
   },
   "devDependencies": {
     "@logux/eslint-config": "^53.4.0",
@@ -65,5 +63,6 @@
   },
   "clean-publish": {
     "cleanDocs": true
-  }
+  },
+  "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
 }

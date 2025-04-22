@@ -1,5 +1,4 @@
-let { deepStrictEqual, equal } = require('node:assert')
-let { join } = require('node:path')
+let { equal } = require('node:assert')
 let { test } = require('node:test')
 let postcss = require('postcss')
 
@@ -24,14 +23,14 @@ async function catchError(fn) {
 
 test('throws error on unknown mixin', async () => {
   let error = await catchError(() => run('@mixin A'))
-  equal(error.message, 'postcss-mixins: <css input>:1:1: Undefined mixin A')
+  equal(error.message, 'postcss-mixins-lite: <css input>:1:1: Undefined mixin A')
 })
 
 test('throws error on brackets in mixin', async () => {
   let error = await catchError(() => run('@define-mixin a $p {}; @mixin a($p)'))
   equal(
     error.message,
-    'postcss-mixins: <css input>:1:24: Remove brackets from mixin. ' +
+    'postcss-mixins-lite: <css input>:1:24: Remove brackets from mixin. ' +
       'Like: @mixin name(1px) → @mixin name 1px'
   )
 })
@@ -213,158 +212,6 @@ test('uses variables', async () => {
   )
 })
 
-test('loads mixins from dir', async () => {
-  let result = await run(
-    'a { @mixin a 1; @mixin b; @mixin c; @mixin d; @mixin e; }',
-    'a { a: 1; b: 2; c: 3; d: 4; e: 5; }',
-    {
-      mixinsDir: join(__dirname, 'mixins')
-    }
-  )
-  deepStrictEqual(
-    result.messages.sort((a, b) => a.file && a.file.localeCompare(b.file)),
-    [
-      {
-        file: join(__dirname, 'mixins/a.js'),
-        parent: '',
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/b.json'),
-        parent: '',
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/c.CSS'),
-        parent: '',
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/d.sss'),
-        parent: '',
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/e.pcss'),
-        parent: '',
-        type: 'dependency'
-      },
-      {
-        dir: join(__dirname, 'mixins'),
-        glob: '*.{js,cjs,mjs,json,css,sss,pcss}',
-        parent: '',
-        type: 'dir-dependency'
-      }
-    ]
-  )
-})
-
-test('loads mixins from dir with parent options', async () => {
-  let parent = join(__dirname, 'a.js')
-  let result = await run(
-    'a { @mixin a 1; @mixin b; @mixin c; @mixin d; @mixin e; }',
-    'a { a: 1; b: 2; c: 3; d: 4; e: 5; }',
-    {
-      mixinsDir: join(__dirname, 'mixins'),
-      parent: join(__dirname, 'a.js')
-    }
-  )
-  deepStrictEqual(
-    result.messages.sort((a, b) => a.file && a.file.localeCompare(b.file)),
-    [
-      {
-        file: join(__dirname, 'mixins/a.js'),
-        parent,
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/b.json'),
-        parent,
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/c.CSS'),
-        parent,
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/d.sss'),
-        parent,
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'mixins/e.pcss'),
-        parent,
-        type: 'dependency'
-      },
-      {
-        dir: join(__dirname, 'mixins'),
-        glob: '*.{js,cjs,mjs,json,css,sss,pcss}',
-        parent: '',
-        type: 'dir-dependency'
-      }
-    ]
-  )
-})
-
-test('loads mixins from dirs', async () => {
-  await run('a { @mixin a 1; @mixin c; }', 'a { a: 1; c: 3; }', {
-    mixinsDir: [join(__dirname, 'mixins'), join(__dirname, 'other')]
-  })
-})
-
-test('loads mixins from relative dir', async () => {
-  await run(
-    'a { @mixin a 1; @mixin b; @mixin c; @mixin d; @mixin e; }',
-    'a { a: 1; b: 2; c: 3; d: 4; e: 5; }',
-    {
-      mixinsDir: 'test/mixins/'
-    }
-  )
-})
-
-test('loads mixins from relative dirs', async () => {
-  await run('a { @mixin a 1; @mixin c; }', 'a { a: 1; c: 3; }', {
-    mixinsDir: ['test/mixins', 'test/other']
-  })
-})
-
-test('loads mixins from file glob', async () => {
-  await run('a { @mixin a 1; @mixin b; }', 'a { a: 1; b: 2; }', {
-    mixinsFiles: join(__dirname, 'mixins', '*.{js,json}')
-  })
-})
-
-test('loads mixins from file globs', async () => {
-  await run('a { @mixin a 1; @mixin c; }', 'a { a: 1; c: 3; }', {
-    mixinsFiles: [
-      join(__dirname, 'mixins', '*.!(json|css)'),
-      join(__dirname, 'other', '*')
-    ]
-  })
-})
-
-test('loads mixins with dependencies', async () => {
-  let result = await run('a { @mixin f; }', 'a { g: 5; }', {
-    mixinsFiles: join(__dirname, 'deps', 'f.js')
-  })
-  deepStrictEqual(
-    result.messages.sort((a, b) => a.file && a.file.localeCompare(b.file)),
-    [
-      {
-        file: join(__dirname, 'deps/f.js'),
-        parent: '',
-        type: 'dependency'
-      },
-      {
-        file: join(__dirname, 'deps/g.js'),
-        parent: join(__dirname, 'deps/f.js'),
-        type: 'dependency'
-      }
-    ]
-  )
-})
-
 test('coverts mixins values', async () => {
   let processor = postcss(
     mixins({
@@ -422,10 +269,6 @@ test('works in sync mode on no option', () => {
   equal(postcss(mixins()).process(input, { from: 'a.css' }).css, out)
 })
 
-test('has @add-mixin alias', async () => {
-  await run('@define-mixin a { a: 1 } @add-mixin a', 'a: 1')
-})
-
 test('treats single-arg content as a single argument', async () => {
   await run(
     '@define-mixin a $x, $y { a: $x; b: $y; } ' +
@@ -441,7 +284,7 @@ test('throws error when single-arg does not have start parenthesis', async () =>
 
   equal(
     error.message,
-    'postcss-mixins: <css input>:1:24: ' +
+    'postcss-mixins-lite: <css input>:1:24: ' +
       'Content of single-arg must be wrapped in brackets: single-arg 1'
   )
 })
@@ -453,7 +296,7 @@ test('throws error when single-arg does not have end parenthesis', async () => {
 
   equal(
     error.message,
-    'postcss-mixins: <css input>:1:24: ' +
+    'postcss-mixins-lite: <css input>:1:24: ' +
       'Content of single-arg must be wrapped in brackets: single-arg(1, 2;'
   )
 })
