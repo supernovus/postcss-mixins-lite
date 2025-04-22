@@ -1,10 +1,12 @@
-# PostCSS Mixins
+# PostCSS Mixins (lite version)
 
 <img align="right" width="135" height="95"
      title="Philosopher’s stone, logo of PostCSS"
      src="https://postcss.org/logo-leftp.svg">
 
-[PostCSS] plugin for mixins.
+[PostCSS] plugin for mixins; this is a **fork** of [postcss-mixins] that strips
+out all of the filesystem related functionality, and adds the optional ability
+to change the rule tags used.
 
 Note, that you must set this plugin before [postcss-simple-vars]
 and [postcss-nested].
@@ -55,6 +57,7 @@ For simple cases you can use [postcss-define-property].
 [postcss-utilities]:       https://github.com/ismamz/postcss-utilities
 [postcss-simple-vars]:     https://github.com/postcss/postcss-simple-vars
 [postcss-nested]:          https://github.com/postcss/postcss-nested
+[postcss-mixins]:          https://github.com/postcss/postcss-mixins
 [PostCSS]:                 https://github.com/postcss/postcss
 
 <a href="https://evilmartians.com/?utm_source=postcss-mixins">
@@ -68,7 +71,7 @@ For simple cases you can use [postcss-define-property].
 **Step 1:** Install plugin:
 
 ```sh
-npm install --save-dev postcss postcss-mixins
+npm install --save-dev postcss postcss-mixins-lite
 ```
 
 **Step 2:** Check your project for existed PostCSS config: `postcss.config.js`
@@ -83,7 +86,7 @@ and set this plugin in settings.
 ```diff
 module.exports = {
   plugins: [
-+   require('postcss-mixins'),
++   require('postcss-mixins-lite'),
     require('autoprefixer')
   ]
 }
@@ -115,9 +118,6 @@ You can use it with [postcss-nested] plugin:
 Unlike Sass, PostCSS has no `if` or `while` statements. If you need some
 complicated logic, you should use function mixin.
 
-[postcss-nested]:      https://github.com/postcss/postcss-nested
-[postcss-simple-vars]: https://github.com/postcss/postcss-simple-vars
-
 
 ### Function Mixin
 
@@ -137,7 +137,7 @@ Other arguments will be taken from at-rule parameters.
 See [PostCSS API](https://postcss.org/api/) about nodes API.
 
 ```js
-require('postcss-mixins')({
+require('postcss-mixins-lite')({
     mixins: {
         icons: function (mixin, dir) {
             fs.readdirSync('/images/' + dir).forEach(function (file) {
@@ -166,7 +166,7 @@ require('postcss-mixins')({
 You can also return an object if you don’t want to create each node manually:
 
 ```js
-require('postcss-mixins')({
+require('postcss-mixins-lite')({
     mixins: {
         image: function (mixin, path, dpi) {
             return {
@@ -189,7 +189,7 @@ Mixin body will be in `mixin.nodes`:
 ```js
 var postcss = require('postcss');
 
-require('postcss-mixins')({
+require('postcss-mixins-lite')({
     mixins: {
         hover: function (mixin) {
             let rule = postcss.rule({ selector: '&:hover, &.hover' });
@@ -203,7 +203,7 @@ require('postcss-mixins')({
 Or you can use object instead of function:
 
 ```js
-require('postcss-mixins')({
+require('postcss-mixins-lite')({
     mixins: {
         clearfix: {
             '&::after': {
@@ -232,7 +232,7 @@ For example, CSS mixins:
 or JS mixins:
 
 ```js
-require('postcss-mixins')({
+require('postcss-mixins-lite')({
     mixins: {
         isIe: function () {
             '@mixin-content': {},
@@ -276,8 +276,9 @@ the special `single-arg` keyword. For example:
 ### Migration from Sass
 
 If you need to use Sass and PostCSS mixins together
-(for example, while migration), you could use `@add-mixin`,
-instead of `@mixin`. Just put PostCSS after Sass.
+(for example, while migration), you could set `options.tags.use` to a
+value other than `mixin`. Then just put PostCSS after Sass.
+An example using `{tags:{use: 'add-mixin'}}` as the options:
 
 ```sass
 // Legacy SCSS
@@ -307,58 +308,37 @@ Type: `Object`
 
 Object of function mixins.
 
-### `mixinsDir`
+### `tags`
 
-Type: `string|string[]`
+Type: `Object`
 
-Autoload all mixins from one or more dirs. Mixin name will be taken from file
-name.
+A way to override the rule tags used by the plugin.
+All the properties of this have string values, and must NOT have 
+the `'@'` prefix.
 
-```js
-// gulpfile.js
+### `tags.content`
 
-require('postcss-mixins')({
-    mixinsDir: path.join(__dirname, 'mixins')
-})
+Default: `'mixin-content'`
 
-// mixins/clearfix.js
+The tag for the `@` rule that can be used to include the mixin content.
 
-module.exports = {
-    '&::after': {
-        content: '""',
-        display: 'table',
-        clear: 'both'
-    }
-}
+### `tags.define`
 
-// mixins/size.pcss
+Default: `'define-mixin'`
 
-@define-mixin size $size {
-    width: $size;
-    height: $size;
-}
+The tag for the `@` rule that is used to define a mixin from CSS.
 
-// mixins/circle.sss
+### `tags.single`
 
-@define-mixin circle $size
-  border-radius: 50%
-  width: $size
-  height: $size
-```
+Default: `'single-arg'`
 
-### `mixinsFiles`
+The tag for a pseudo CSS function used for arguments that include commas.
 
-Type: `string|string[]`
+### `tags.use`
 
-Similar to [`mixinsDir`](#mixinsdir); except, you can provide
-[tinyglobby](https://github.com/SuperchupuDev/tinyglobby) syntax
-to target or not target specific files.
+Default: `'mixin'`
 
-```js
-require('postcss-mixins')({
-    mixinsFiles: path.join(__dirname, 'mixins', '!(*.spec.js)')
-})
-```
+The tag for the `@` rule that is used to _use_ (include/compose) a mixin.
 
 ### `silent`
 

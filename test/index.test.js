@@ -361,3 +361,34 @@ test('passes single-arg to the nested function mixin', async () => {
     }
   })
 })
+
+test('options.tags.use works', async () => {
+  await run('@define-mixin a { a: 1 } @add-mixin a', 'a: 1', 
+  {
+    tags: {use: 'add-mixin'}
+  })
+})
+
+test('options.tags.define works', async () => {
+  await run('@set-mixin a { a: 1 } @mixin a', 'a: 1', 
+  {
+    tags: {define: 'set-mixin'}
+  })
+})
+
+test('options.tags.single works', async () => {
+  await run(
+    '@define-mixin a $x, $y { a: $x; b: $y; } ' +
+      '@mixin a as-one(1, 2), 3;',
+    'a: 1, 2;\nb: 3;',
+    {tags: {single: 'as-one'}}
+  )
+})
+
+test('options.tags.content works', async () => {
+  await run(
+    '@define-mixin m { @media { @mixin-body; } } @mixin m { a {} }',
+    '@media { a {} }',
+    {tags: {content: 'mixin-body'}}
+  )
+})
